@@ -11,8 +11,8 @@ api = Api(app)
 # MySQL configurations
 app.config['MYSQL_DATABASE_USER'] = os.environ.get('MYSQL_DATABASE_USER', None)
 app.config['MYSQL_DATABASE_PASSWORD'] = os.environ.get('MYSQL_DATABASE_PASSWORD', None)
-app.config['MYSQL_DATABASE_DB'] = os.environ.get('MYSQL_DATABASE_DB')
-app.config['MYSQL_DATABASE_HOST'] = os.environ.get('MYSQL_DATABASE_HOST')
+app.config['MYSQL_DATABASE_DB'] = os.environ.get('MYSQL_DATABASE_DB', None)
+app.config['MYSQL_DATABASE_HOST'] = os.environ.get('MYSQL_DATABASE_HOST', None)
 
 mysql = MySQL()
 mysql.init_app(app)
@@ -31,7 +31,7 @@ class Character(Resource):
 		try:
 			conn = mysql.connect()
 			cursor = conn.cursor()
-			cursor.execute("SELECT * FROM characters WHERE character_name = %s",name)
+			cursor.execute("SELECT * FROM characters WHERE character_name = '{}'".format(name))
 			data = cursor.fetchone()
 			return data, 200
 		except:
@@ -47,21 +47,21 @@ class Character(Resource):
 		try:
 			conn = mysql.connect()
 			cursor = conn.cursor()
-			cursor.execute("SELECT * FROM characters WHERE character_name = %s",name) 
+			cursor.execute("SELECT * FROM characters WHERE character_name = '{}'".format(name))
 			data = cursor.fetchall()
 			if len(data) > 0:
 				return data, 200
 		except:
-			"Unable to connect to database!", 404
+			return "Unable to connect to database!", 404
 
 		try:
 			conn = mysql.connect()
 			cursor = conn.cursor()
 
 			cursor.execute("INSERT INTO characters (character_name,character_race,character_class,character_level) VALUES ('{}','{}','{}',{})".format(name,args["race"],args["class"],int(args["level"])))
+			conn.commit()
 
-			cursor = conn.cursor()
-			cursor.execute("SELECT * FROM characters WHERE character_name = %s",name)
+			cursor.execute("SELECT * FROM characters WHERE character_name = '{}'".format(name))
 			data = cursor.fetchone()
 			return data, 201
 		except:
@@ -74,26 +74,51 @@ class Character(Resource):
 		parser.add_argument("level")
 		args = parser.parse_args()
 
-		for character in characters:
-			if(name == character["name"]):
-				character["race"] = args["race"]
-				character["class"] = args["class"]
-				character["level"] = args["level"]
-				return character, 200
+		try:
+			conn = mysql.connect()
+			cursor = conn.cursor()
+			cursor.execute("SELECT * FROM characters WHERE character_name = '{}'".format(name))
+			data = cursor.fetchall()
+			if len(data) > 0:
+				cursor.execute("UPDATE characters SET character_race = '{}', character_class = '{}', character_level = {} WHERE character_name = '{}'".format(args["race"],args["class"],args["level"],name))
+				conn.commit()
 
-		character = {
-			"name": name,
-			"race": args["race"],
-			"class": args["class"],
-			"level": args["level"]
-		}
-		characters.append(character)
-		return character, 201
+				cursor.execute("SELECT * FROM characters WHERE character_name = '{}'".format(name))
+				data = cursor.fetchall()
+
+				return data, 200
+		except:
+			return "Unable to connect to database!", 404
+
+		try:
+			conn = mysql.connect()
+			cursor = conn.cursor()
+
+			cursor.execute("INSERT INTO characters (character_name,character_race,character_class,character_level) VALUES ('{}','{}','{}',{})".format(name,args["race"],args["class"],int(args["level"])))
+			conn.commit()
+
+			cursor.execute("SELECT * FROM characters WHERE character_name = '{}'".format(name))
+			data = cursor.fetchone()
+			return data, 201
+		except:
+			return "Unable to INSERT new character!", 404
+
 
 	def delete(self, name):
-		global characters
-		characters = [character for character in characters if character["name"] != name]
-		return "{} is deleted.".format(name), 200
+
+		try:
+			conn = mysql.connect()
+			cursor = conn.cursor()
+			cursor.execute("SELECT * FROM characters WHERE character_name = %s",name)
+			data = cursor.fetchall()
+			if len(data) > 0:
+				cursor.execute("DELETE FROM characters WHERE character_name = '{}'".format(name))
+				conn.commit()
+				return "{} is deleted.".format(name), 200
+
+		except:
+			return "{} not found.".format(name),404
+
 
 api.add_resource(Character, "/character/<string:name>")
 
