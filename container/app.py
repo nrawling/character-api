@@ -17,15 +17,6 @@ app.config['MYSQL_DATABASE_HOST'] = os.environ.get('MYSQL_DATABASE_HOST', None)
 mysql = MySQL()
 mysql.init_app(app)
 
-characters = [
-	{
-		"name": "Gunthar",
-		"race": "Dragonborn",
-		"class": "Paladin",
-		"level": 1
-	},
-]
-
 class Character(Resource):
 	def get(self, name):
 		try:
