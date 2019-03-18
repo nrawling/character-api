@@ -9,10 +9,10 @@ app = Flask(__name__)
 api = Api(app)
 
 # MySQL configurations
-app.config['MYSQL_DATABASE_USER'] = os.environ.get('MYSQL_DATABASE_USER', None)
-app.config['MYSQL_DATABASE_PASSWORD'] = os.environ.get('MYSQL_DATABASE_PASSWORD', None)
-app.config['MYSQL_DATABASE_DB'] = os.environ.get('MYSQL_DATABASE_DB', None)
-app.config['MYSQL_DATABASE_HOST'] = os.environ.get('MYSQL_DATABASE_HOST', None)
+app.config['MYSQL_DATABASE_USER'] = os.environ.get('MYSQL_DATABASE_USER', "character_demo")
+app.config['MYSQL_DATABASE_PASSWORD'] = os.environ.get('MYSQL_DATABASE_PASSWORD', "")
+app.config['MYSQL_DATABASE_DB'] = os.environ.get('MYSQL_DATABASE_DB', "monkeydb")
+app.config['MYSQL_DATABASE_HOST'] = os.environ.get('MYSQL_DATABASE_HOST', "monkeysql.c6q7nlvddbkw.us-east-1.rds.amazonaws.com")
 
 mysql = MySQL()
 mysql.init_app(app)
@@ -113,4 +113,4 @@ class Character(Resource):
 
 api.add_resource(Character, "/character/<string:name>")
 
-app.run(debug=True)
+app.run(host='0.0.0.0', debug=True)

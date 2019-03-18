@@ -1,1 +1,6 @@
-docker run -d --network="host" -p 5000:5000 flask-tutorial
+docker run --net host -p 5000:5000 \
+-e MYSQL_DATABASE_PASSWORD=$MYSQL_DATABASE_PASSWORD \
+-e MYSQL_DATABASE_HOST=$MYSQL_DATABASE_HOST \
+-e MYSQL_DATABASE_DB=$MYSQL_DATABASE_DB \
+-e MYSQL_DATABASE_USER=$MYSQL_DATABASE_USER \
+flask-tutorial
